@@ -3,11 +3,20 @@ package main
 import (
 	"github.com/codingsince1985/checksum/md5"
 	"github.com/codingsince1985/util"
-	"strings"
+	"os"
 )
 
 func main() {
-	root := "/home/jerry/Downloads/Go/"
+	args := os.Args
+	if len(args) == 4 {
+		switch args[1] {
+		case "--create":
+			createChecksumFile(args[2], args[3])
+		}
+	}
+}
+
+func createChecksumFile(root, file string) {
 	fileList, err := util.GetFiles(root)
 	if err != nil {
 		panic(err)
@@ -19,9 +28,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		files = append(files, util.File{file[strings.Index(file, root)+len(root):], md5sum})
+		files = append(files, util.File{file[len(root):], md5sum})
 	}
 	folder := util.Folder{root, "md5", files}
 
-	folder.Write("/home/jerry/Downloads/Go.json")
+	folder.Write(file)
 }
