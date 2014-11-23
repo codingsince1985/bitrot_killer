@@ -5,6 +5,7 @@ import (
 	"github.com/codingsince1985/checksum/md5"
 	"github.com/codingsince1985/util"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -14,7 +15,11 @@ func main() {
 		case "--create":
 			createChecksumFile(args[2], args[3])
 		case "--check":
-			checkChecksumFile(args[2], args[3])
+			if len(args) == 4 {
+				checkChecksumFile(args[2], args[3], "")
+			} else {
+				checkChecksumFile(args[2], args[3], args[4])
+			}
 		}
 	}
 }
@@ -46,7 +51,7 @@ func getChecksum(root string) (util.Folder, error) {
 	return folder, nil
 }
 
-func checkChecksumFile(root, file string) {
+func checkChecksumFile(root, file, remoteRoot string) {
 	folderAfter, err := getChecksum(root)
 	if err != nil {
 		panic(err)
@@ -60,18 +65,32 @@ func checkChecksumFile(root, file string) {
 	changed, created, removed := util.Compare(folderBefore.Files, folderAfter.Files)
 
 	if len(changed) > 0 {
-		fmt.Println("Changed")
+		fmt.Println("\nChanged")
 		printFiles(changed)
 	}
 
 	if len(created) > 0 {
-		fmt.Println("Created")
+		fmt.Println("\nCreated")
 		printFiles(created)
 	}
 
 	if len(removed) > 0 {
-		fmt.Println("Removed")
+		fmt.Println("\nRemoved")
 		printFiles(removed)
+	}
+
+	if remoteRoot != "" {
+		fmt.Print("\nSync changes to remote folder? ")
+		b := make([]byte, 2)
+		if _, err := os.Stdin.Read(b); err != nil {
+			panic(err)
+		}
+
+		if strings.ToUpper(string(b[0])) == "Y" {
+			fmt.Println("Sync...")
+		} else {
+			fmt.Println("Not syncing...")
+		}
 	}
 }
 
