@@ -44,6 +44,16 @@ func checkDuplicated(checksumFile string) {
 		}
 		fmt.Println("")
 	}
+
+	emptyFolders := []util.File{}
+	for i, _ := range folder.Files {
+		emptyFolders = checkEmptyFolderFor(folder.Files[i:], emptyFolders)
+	}
+
+	fmt.Println("\nEmpty folders")
+	for _, emptyFolder := range emptyFolders {
+		fmt.Println(emptyFolder.Name)
+	}
 }
 
 func checkDuplicatedIn(files []util.File, dupFiles [][]util.File) [][]util.File {
@@ -68,6 +78,24 @@ func checkDuplicatedIn(files []util.File, dupFiles [][]util.File) [][]util.File 
 		}
 	}
 	return dupFiles
+}
+
+func checkEmptyFolderFor(files []util.File, emptyFolders []util.File) []util.File {
+	if len(files) >= 2 && files[0].Checksum == "" {
+		folder := files[0]
+
+		found := false
+		for _, file := range files[1:] {
+			if strings.HasPrefix(file.Name, folder.Name) {
+				found = true
+			}
+		}
+
+		if !found {
+			emptyFolders = append(emptyFolders, folder)
+		}
+	}
+	return emptyFolders
 }
 
 func createChecksumFile(root, checksumFile string) {
