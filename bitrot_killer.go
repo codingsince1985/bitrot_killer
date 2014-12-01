@@ -163,10 +163,10 @@ func checkChecksumFile(root, checksumFile, remoteRoot string) {
 				applyChanged(root, remoteRoot, changedFiles)
 				applyCreated(root, remoteRoot, createdFiles, createdDirs)
 				applyRemoved(root, remoteRoot, removedFiles, removedDirs)
+
+				folderAfter.Write(checksumFile)
 			}
 		}
-
-		folderAfter.Write(checksumFile)
 	}
 }
 
