@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/codingsince1985/bitrot_killer/util"
 	"github.com/codingsince1985/checksum/md5"
-	"github.com/codingsince1985/util"
 	"os"
 	"strings"
 )
