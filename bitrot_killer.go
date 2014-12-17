@@ -9,27 +9,33 @@ import (
 )
 
 func main() {
-	args := os.Args
-	if len(args) >= 3 {
+	args := os.Args[1:]
+	if len(args) >= 2 {
+		var err error
+
 		switch {
-		case args[1] == "--create" && len(args) == 4:
-			createChecksumFile(args[2], args[3])
-		case args[1] == "--check":
-			if len(args) == 5 {
-				checkChecksumFile(args[2], args[3], args[4])
+		case args[0] == "--create" && len(args) == 3:
+			createChecksumFile(args[1], args[2])
+		case args[0] == "--check":
+			if len(args) == 4 {
+				err = checkChecksumFile(args[1], args[2], args[3])
 			} else {
-				checkChecksumFile(args[2], args[3], "")
+				err = checkChecksumFile(args[1], args[2], "")
 			}
-		case args[1] == "--dedup":
-			checkDuplicated(args[2])
+		case args[0] == "--dedup":
+			err = checkDuplicated(args[2])
+		}
+
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }
 
-func checkDuplicated(checksumFile string) {
+func checkDuplicated(checksumFile string) error {
 	folder, err := util.Read(checksumFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	dupFiles := [][]util.File{}
@@ -54,6 +60,8 @@ func checkDuplicated(checksumFile string) {
 	for _, emptyFolder := range emptyFolders {
 		fmt.Println(emptyFolder.Name)
 	}
+
+	return nil
 }
 
 func checkDuplicatedIn(files []util.File, dupFiles [][]util.File) [][]util.File {
@@ -98,20 +106,21 @@ func checkEmptyFolderFor(files []util.File, emptyFolders []util.File) []util.Fil
 	return emptyFolders
 }
 
-func createChecksumFile(root, checksumFile string) {
+func createChecksumFile(root, checksumFile string) error {
 	root = appendSlash(root)
 	folder, err := getChecksum(root)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	folder.Write(checksumFile)
+	return nil
 }
 
 func getChecksum(root string) (util.Folder, error) {
 	fileList, err := util.GetFiles(root)
 	if err != nil {
-		panic(err)
+		return util.Folder{}, err
 	}
 
 	files := []util.File{}
@@ -119,7 +128,7 @@ func getChecksum(root string) (util.Folder, error) {
 		if file != root {
 			md5sum, err := md5.MD5sum(file)
 			if err != nil {
-				panic(err)
+				return util.Folder{}, err
 			}
 			files = append(files, util.File{file[len(root):], md5sum})
 		}
@@ -128,18 +137,18 @@ func getChecksum(root string) (util.Folder, error) {
 	return folder, nil
 }
 
-func checkChecksumFile(root, checksumFile, remoteRoot string) {
+func checkChecksumFile(root, checksumFile, remoteRoot string) error {
 	root = appendSlash(root)
 	remoteRoot = appendSlash(remoteRoot)
 
 	folderAfter, err := getChecksum(root)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	folderBefore, err := util.Read(checksumFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	changedFiles := util.ChangedFiles(folderBefore.Files, folderAfter.Files)
@@ -156,7 +165,7 @@ func checkChecksumFile(root, checksumFile, remoteRoot string) {
 			fmt.Print("\nSync changes to remote folder? ")
 			b := make([]byte, 1)
 			if _, err := os.Stdin.Read(b); err != nil {
-				panic(err)
+				return err
 			}
 
 			if strings.ToUpper(string(b[0])) == "Y" {
@@ -168,6 +177,8 @@ func checkChecksumFile(root, checksumFile, remoteRoot string) {
 			}
 		}
 	}
+
+	return nil
 }
 
 func appendSlash(folder string) string {
