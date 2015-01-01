@@ -130,10 +130,10 @@ func getChecksum(root string) (util.Folder, error) {
 			if err != nil {
 				return util.Folder{}, err
 			}
-			files = append(files, util.File{file[len(root):], md5sum})
+			files = append(files, util.File{Name: file[len(root):], Checksum: md5sum})
 		}
 	}
-	folder := util.Folder{root, "md5", files}
+	folder := util.Folder{Folder: root, Algorithm: "md5", Files: files}
 	return folder, nil
 }
 

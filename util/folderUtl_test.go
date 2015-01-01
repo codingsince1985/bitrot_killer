@@ -12,9 +12,9 @@ func TestEncodeAndWrite(t *testing.T) {
 	}
 
 	folder := util.Folder{
-		"/home/jerry/",
-		"md5",
-		files,
+		Folder:    "/home/jerry/",
+		Algorithm: "md5",
+		Files:     files,
 	}
 
 	jsonBytes, err := folder.Encode()
