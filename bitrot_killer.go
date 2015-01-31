@@ -139,8 +139,6 @@ func getChecksum(root string) (util.Folder, error) {
 
 func checkChecksumFile(root, checksumFile, remoteRoot string) error {
 	root = appendSlash(root)
-	remoteRoot = appendSlash(remoteRoot)
-
 	folderAfter, err := getChecksum(root)
 	if err != nil {
 		return err
@@ -169,6 +167,7 @@ func checkChecksumFile(root, checksumFile, remoteRoot string) error {
 			}
 
 			if strings.ToUpper(string(b[0])) == "Y" {
+				remoteRoot = appendSlash(remoteRoot)
 				applyChanged(root, remoteRoot, changedFiles)
 				applyCreated(root, remoteRoot, createdFiles, createdDirs)
 				applyRemoved(root, remoteRoot, removedFiles, removedDirs)
@@ -232,13 +231,13 @@ func applyRemoved(root, remoteRoot string, removedFiles, removedDirs []util.File
 }
 
 func print(title string, files, dirs []util.File) {
-	if len(files) > 0 {
-		fmt.Println(title + " files")
-		printFiles(files)
-	}
 	if len(dirs) > 0 {
 		fmt.Println(title + " dirs")
 		printFiles(dirs)
+	}
+	if len(files) > 0 {
+		fmt.Println(title + " files")
+		printFiles(files)
 	}
 }
 
