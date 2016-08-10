@@ -18,4 +18,4 @@ Check duplicated files and empty folder
 
 License
 ==
-couchcache is distributed under the terms of the MIT license. See LICENSE for details.
+Bitrot Killer is distributed under the terms of the MIT license. See LICENSE for details.
