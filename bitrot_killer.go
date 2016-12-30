@@ -38,8 +38,8 @@ func checkDuplicated(checksumFile string) error {
 		return err
 	}
 
-	dupFiles := [][]util.File{}
-	for i, _ := range folder.Files {
+	var dupFiles [][]util.File
+	for i := range folder.Files {
 		dupFiles = checkDuplicatedIn(folder.Files[i:], dupFiles)
 	}
 
@@ -48,11 +48,11 @@ func checkDuplicated(checksumFile string) error {
 		for _, file := range dupFile {
 			fmt.Println(file.Name)
 		}
-		fmt.Println("")
+		fmt.Println()
 	}
 
-	emptyFolders := []util.File{}
-	for i, _ := range folder.Files {
+	var emptyFolders []util.File
+	for i := range folder.Files {
 		emptyFolders = checkEmptyFolderFor(folder.Files[i:], emptyFolders)
 	}
 
@@ -60,7 +60,6 @@ func checkDuplicated(checksumFile string) error {
 	for _, emptyFolder := range emptyFolders {
 		fmt.Println(emptyFolder.Name)
 	}
-
 	return nil
 }
 
@@ -123,7 +122,7 @@ func getChecksum(root string) (util.Folder, error) {
 		return util.Folder{}, err
 	}
 
-	files := []util.File{}
+	var files []util.File
 	for _, file := range fileList {
 		if file != root {
 			md5sum, err := md5.MD5sum(file)
@@ -133,8 +132,7 @@ func getChecksum(root string) (util.Folder, error) {
 			files = append(files, util.File{Name: file[len(root):], Checksum: md5sum})
 		}
 	}
-	folder := util.Folder{Folder: root, Algorithm: "md5", Files: files}
-	return folder, nil
+	return util.Folder{Folder: root, Algorithm: "md5", Files: files}, nil
 }
 
 func checkChecksumFile(root, checksumFile, remoteRoot string) error {
@@ -176,7 +174,6 @@ func checkChecksumFile(root, checksumFile, remoteRoot string) error {
 			}
 		}
 	}
-
 	return nil
 }
 

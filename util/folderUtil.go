@@ -5,33 +5,31 @@ import (
 	"io/ioutil"
 )
 
-type Folder struct {
-	Folder    string `json:"folder"`
-	Algorithm string `json:"algorithm"`
-	Files     []File `json:"files"`
-}
-
-type File struct {
-	Name     string `json:"name"`
-	Checksum string `json:"checksum"`
-}
-
-type ChecksumBytes []byte
+type (
+	Folder struct {
+		Folder    string `json:"folder"`
+		Algorithm string `json:"algorithm"`
+		Files     []File `json:"files"`
+	}
+	File struct {
+		Name     string `json:"name"`
+		Checksum string `json:"checksum"`
+	}
+	ChecksumBytes []byte
+)
 
 func (folder Folder) Encode() ([]byte, error) {
-	bytes, err := json.MarshalIndent(folder, "", "  ")
-	if err != nil {
+	if bytes, err := json.MarshalIndent(folder, "", "  "); err != nil {
 		return nil, err
+	} else {
+		return bytes, nil
 	}
-
-	return bytes, nil
 }
 
 func (jsonBytes ChecksumBytes) decode() (Folder, error) {
 	var folder Folder
 
-	err := json.Unmarshal(jsonBytes, &folder)
-	if err != nil {
+	if err := json.Unmarshal(jsonBytes, &folder); err != nil {
 		return Folder{}, err
 	}
 
@@ -39,12 +37,11 @@ func (jsonBytes ChecksumBytes) decode() (Folder, error) {
 }
 
 func (folder Folder) Write(filepath string) error {
-	bytes, err := folder.Encode()
-	if err != nil {
+	if bytes, err := folder.Encode(); err != nil {
 		return err
+	} else {
+		return ioutil.WriteFile(filepath, bytes, 0644)
 	}
-
-	return ioutil.WriteFile(filepath, bytes, 0644)
 }
 
 func Read(filepath string) (Folder, error) {

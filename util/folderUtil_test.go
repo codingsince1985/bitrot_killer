@@ -88,6 +88,7 @@ func TestCompare(t *testing.T) {
 	if len(removedFiles) != 1 || removedFiles[0].Name != "bar/bar" || removedFiles[0].Checksum != "bar" {
 		t.Error("RemovedFiles() returned wrong removed files")
 	}
+
 	if len(removedDirs) != 1 || removedDirs[0].Name != "foobar" || removedDirs[0].Checksum != "" {
 		t.Error("RemovedFiles() returned wrong removed dirs")
 	}
