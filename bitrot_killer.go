@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codingsince1985/bitrot_killer/util"
-	"github.com/codingsince1985/checksum/md5"
+	"github.com/codingsince1985/checksum"
 	"os"
 	"strings"
 )
@@ -123,9 +123,9 @@ func getChecksum(root string) (util.Folder, error) {
 	}
 
 	var files []util.File
-	for _, file := range fileList {
+	for _, file := range fileList { 
 		if file != root {
-			md5sum, err := md5.MD5sum(file)
+			md5sum, err := checksum.MD5sum(file)
 			if err != nil {
 				return util.Folder{}, err
 			}
