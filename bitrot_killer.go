@@ -123,7 +123,7 @@ func getChecksum(root string) (util.Folder, error) {
 	}
 
 	var files []util.File
-	for _, file := range fileList { 
+	for _, file := range fileList {
 		if file != root {
 			md5sum, err := checksum.MD5sum(file)
 			if err != nil {
