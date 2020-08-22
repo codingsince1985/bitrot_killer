@@ -1,6 +1,6 @@
 Bitrot Killer
 ==
-[![GoDoc](https://godoc.org/github.com/codingsince1985/bitrot_killer?status.svg)](https://godoc.org/github.com/codingsince1985/bitrot_killer)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/codingsince1985/bitrot_killer)](https://pkg.go.dev/github.com/codingsince1985/bitrot_killer)
 
 A backup utility that checks checksum to prevent bitrot.
 
