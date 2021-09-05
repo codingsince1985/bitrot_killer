@@ -1,3 +1,4 @@
-github.com/codingsince1985/checksum v1.0.0 h1:2FZ6i7glMIjpEfJNrMVNpHaO7CJtKq0c3nsw0KPQUYw=
-github.com/codingsince1985/checksum v1.0.0/go.mod h1:oOS5kmF4DPKaeMAT7CCXcvakSB7s08Om5FdZTwV/CEk=
+github.com/codingsince1985/checksum v1.2.0 h1:eHrYWk1Cg8u7NoG2J6atmlSg260PiCnluRXP5Whxvho=
+github.com/codingsince1985/checksum v1.2.0/go.mod h1:Ccc9I17XmnLE8EL0rU22ZYHRpD2SGcGM15Xe3vxKStQ=
+github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
