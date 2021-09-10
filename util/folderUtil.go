@@ -2,7 +2,7 @@ package util
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 )
 
 type (
@@ -17,6 +17,10 @@ type (
 	}
 	ChecksumBytes []byte
 )
+
+func (file File) IsFolder() bool {
+	return file.Checksum == ""
+}
 
 func (folder Folder) Encode() ([]byte, error) {
 	if bytes, err := json.MarshalIndent(folder, "", "  "); err != nil {
@@ -40,12 +44,12 @@ func (folder Folder) Write(filepath string) error {
 	if bytes, err := folder.Encode(); err != nil {
 		return err
 	} else {
-		return ioutil.WriteFile(filepath, bytes, 0644)
+		return os.WriteFile(filepath, bytes, 0644)
 	}
 }
 
 func Read(filepath string) (Folder, error) {
-	bytes, err := ioutil.ReadFile(filepath)
+	bytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return Folder{}, err
 	}
@@ -80,7 +84,7 @@ func CreatedFiles(beforeFiles, afterFiles []File) (createdFiles, createdDirs []F
 			}
 		}
 		if !found {
-			if f1.Checksum == "" {
+			if f1.IsFolder() {
 				createdDirs = append(createdDirs, f1)
 			} else {
 				createdFiles = append(createdFiles, f1)
@@ -100,7 +104,7 @@ func RemovedFiles(beforeFiles, afterFiles []File) (removedFiles, removedDirs []F
 			}
 		}
 		if !found {
-			if f1.Checksum == "" {
+			if f1.IsFolder() {
 				removedDirs = append(removedDirs, f1)
 			} else {
 				removedFiles = append(removedFiles, f1)

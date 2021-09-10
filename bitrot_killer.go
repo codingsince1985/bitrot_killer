@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/codingsince1985/bitrot_killer/util"
-	"github.com/codingsince1985/checksum"
 	"os"
 	"strings"
+
+	"github.com/codingsince1985/bitrot_killer/util"
+	"github.com/codingsince1985/checksum"
 )
 
 func main() {
@@ -19,11 +20,11 @@ func main() {
 		case args[0] == "--check":
 			if len(args) == 4 {
 				err = checkChecksumFile(args[1], args[2], args[3])
-			} else {
+			} else if len(args) == 3 {
 				err = checkChecksumFile(args[1], args[2], "")
 			}
 		case args[0] == "--dedup":
-			err = checkDuplicated(args[2])
+			err = checkDuplicated(args[1])
 		}
 
 		if err != nil {
@@ -38,71 +39,50 @@ func checkDuplicated(checksumFile string) error {
 		return err
 	}
 
-	var dupFiles [][]util.File
-	for i := range folder.Files {
-		dupFiles = checkDuplicatedIn(folder.Files[i:], dupFiles)
-	}
-
 	fmt.Println("\nDuplicated files")
-	for _, dupFile := range dupFiles {
-		for _, file := range dupFile {
-			fmt.Println(file.Name)
+	for _, files := range groupByChecksum(folder.Files) {
+		if len(files) > 1 {
+			for i := range files {
+				fmt.Println(files[i])
+			}
+			fmt.Println()
 		}
-		fmt.Println()
-	}
-
-	var emptyFolders []util.File
-	for i := range folder.Files {
-		emptyFolders = checkEmptyFolderFor(folder.Files[i:], emptyFolders)
 	}
 
 	fmt.Println("\nEmpty folders")
-	for _, emptyFolder := range emptyFolders {
+	for _, emptyFolder := range emptyFolders(folder.Files) {
 		fmt.Println(emptyFolder.Name)
 	}
 	return nil
 }
 
-func checkDuplicatedIn(files []util.File, dupFiles [][]util.File) [][]util.File {
-	if len(files) >= 2 && files[0].Checksum != "" {
-		testedFile := files[0]
-
-		for _, dupFile := range dupFiles {
-			if testedFile.Checksum == dupFile[0].Checksum {
-				return dupFiles
-			}
-		}
-
-		dupFile := []util.File{testedFile}
-		for _, file := range files[1:] {
-			if testedFile.Checksum == file.Checksum {
-				dupFile = append(dupFile, file)
-			}
-		}
-
-		if len(dupFile) > 1 {
-			dupFiles = append(dupFiles, dupFile)
+func groupByChecksum(files []util.File) map[string][]string {
+	checksums := make(map[string][]string)
+	for i := range files {
+		if !files[i].IsFolder() {
+			checksums[files[i].Checksum] = append(checksums[files[i].Checksum], files[i].Name)
 		}
 	}
-	return dupFiles
+	return checksums
 }
 
-func checkEmptyFolderFor(files []util.File, emptyFolders []util.File) []util.File {
-	if len(files) >= 2 && files[0].Checksum == "" {
-		folder := files[0]
-
-		found := false
-		for _, file := range files[1:] {
-			if strings.HasPrefix(file.Name, folder.Name) {
-				found = true
-			}
-		}
-
-		if !found {
-			emptyFolders = append(emptyFolders, folder)
+func emptyFolders(files []util.File) []util.File {
+	var folders []util.File
+	for i := range files {
+		if files[i].IsFolder() && hasNoFile(files[i].Name, files) {
+			folders = append(folders, files[i])
 		}
 	}
-	return emptyFolders
+	return folders
+}
+
+func hasNoFile(folderName string, files []util.File) bool {
+	for i := range files {
+		if !files[i].IsFolder() && strings.HasPrefix(files[i].Name, folderName) {
+			return false
+		}
+	}
+	return true
 }
 
 func createChecksumFile(root, checksumFile string) error {
@@ -121,18 +101,36 @@ func getChecksum(root string) (util.Folder, error) {
 	if err != nil {
 		return util.Folder{}, err
 	}
+	return util.Folder{Folder: root, Algorithm: "md5", Files: getFiles(len(root), fileList[1:])}, nil
+}
 
-	var files []util.File
-	for _, file := range fileList {
-		if file != root {
-			md5sum, err := checksum.MD5sum(file)
-			if err != nil {
-				return util.Folder{}, err
-			}
-			files = append(files, util.File{Name: file[len(root):], Checksum: md5sum})
-		}
+func getFiles(prefix int, files []string) []util.File {
+	num := len(files)
+	tasks := make(chan string, num)
+	results := make(chan util.File, num)
+
+	for i := 0; i < 2; i++ {
+		go worker(prefix, tasks, results)
 	}
-	return util.Folder{Folder: root, Algorithm: "md5", Files: files}, nil
+	for i := range files {
+		tasks <- files[i]
+	}
+	close(tasks)
+	f := make([]util.File, num)
+	for i := 0; i < num; i++ {
+		f[i] = <-results
+	}
+	return f
+}
+
+func worker(prefix int, tasks <-chan string, results chan<- util.File) {
+	for task := range tasks {
+		md5sum, err := checksum.MD5sum(task)
+		if err != nil {
+			results <- util.File{Name: task[prefix:], Checksum: ""}
+		}
+		results <- util.File{Name: task[prefix:], Checksum: md5sum}
+	}
 }
 
 func checkChecksumFile(root, checksumFile, remoteRoot string) error {
