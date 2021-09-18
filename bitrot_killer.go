@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/codingsince1985/bitrot_killer/util"
@@ -17,12 +18,8 @@ func main() {
 		switch {
 		case args[0] == "--create" && len(args) == 3:
 			createChecksumFile(args[1], args[2])
-		case args[0] == "--check":
-			if len(args) == 4 {
-				err = checkChecksumFile(args[1], args[2], args[3])
-			} else if len(args) == 3 {
-				err = checkChecksumFile(args[1], args[2], "")
-			}
+		case args[0] == "--check" && len(args) == 3:
+			err = checkChecksumFile(args[1], args[2])
 		case args[0] == "--dedup":
 			err = checkDuplicated(args[1])
 		}
@@ -42,8 +39,8 @@ func checkDuplicated(checksumFile string) error {
 	fmt.Println("\nDuplicated files")
 	for _, files := range groupByChecksum(folder.Files) {
 		if len(files) > 1 {
-			for i := range files {
-				fmt.Println(files[i])
+			for _, file := range files {
+				fmt.Println(file)
 			}
 			fmt.Println()
 		}
@@ -58,9 +55,9 @@ func checkDuplicated(checksumFile string) error {
 
 func groupByChecksum(files []util.File) map[string][]string {
 	checksums := make(map[string][]string)
-	for i := range files {
-		if !files[i].IsFolder() {
-			checksums[files[i].Checksum] = append(checksums[files[i].Checksum], files[i].Name)
+	for _, file := range files {
+		if !file.IsFolder() {
+			checksums[file.Checksum] = append(checksums[file.Checksum], file.Name)
 		}
 	}
 	return checksums
@@ -68,17 +65,17 @@ func groupByChecksum(files []util.File) map[string][]string {
 
 func emptyFolders(files []util.File) []util.File {
 	var folders []util.File
-	for i := range files {
-		if files[i].IsFolder() && hasNoFile(files[i].Name, files) {
-			folders = append(folders, files[i])
+	for _, file := range files {
+		if file.IsFolder() && hasNoFile(file.Name, files) {
+			folders = append(folders, file)
 		}
 	}
 	return folders
 }
 
 func hasNoFile(folderName string, files []util.File) bool {
-	for i := range files {
-		if !files[i].IsFolder() && strings.HasPrefix(files[i].Name, folderName) {
+	for _, file := range files {
+		if !file.IsFolder() && strings.HasPrefix(file.Name, folderName) {
 			return false
 		}
 	}
@@ -112,14 +109,15 @@ func getFiles(prefix int, files []string) []util.File {
 	for i := 0; i < 2; i++ {
 		go worker(prefix, tasks, results)
 	}
-	for i := range files {
-		tasks <- files[i]
+	for _, file := range files {
+		tasks <- file
 	}
 	close(tasks)
 	f := make([]util.File, num)
 	for i := 0; i < num; i++ {
 		f[i] = <-results
 	}
+	sort.Slice(f, func(i, j int) bool { return f[i].Name < f[j].Name })
 	return f
 }
 
@@ -133,14 +131,14 @@ func worker(prefix int, tasks <-chan string, results chan<- util.File) {
 	}
 }
 
-func checkChecksumFile(root, checksumFile, remoteRoot string) error {
-	root = appendSlash(root)
-	folderAfter, err := getChecksum(root)
+func checkChecksumFile(root, checksumFile string) error {
+	folderBefore, err := util.Read(checksumFile)
 	if err != nil {
 		return err
 	}
 
-	folderBefore, err := util.Read(checksumFile)
+	root = appendSlash(root)
+	folderAfter, err := getChecksum(root)
 	if err != nil {
 		return err
 	}
@@ -155,21 +153,13 @@ func checkChecksumFile(root, checksumFile, remoteRoot string) error {
 	print("\nRemoved", removedFiles, removedDirs)
 
 	if len(changedFiles) > 0 || len(createdFiles) > 0 || len(createdDirs) > 0 || len(removedFiles) > 0 || len(removedDirs) > 0 {
-		if remoteRoot != "" {
-			fmt.Print("\nSync changes to remote folder? ")
-			b := make([]byte, 1)
-			if _, err := os.Stdin.Read(b); err != nil {
-				return err
-			}
-
-			if strings.ToUpper(string(b[0])) == "Y" {
-				remoteRoot = appendSlash(remoteRoot)
-				applyChanged(root, remoteRoot, changedFiles)
-				applyCreated(root, remoteRoot, createdFiles, createdDirs)
-				applyRemoved(root, remoteRoot, removedFiles, removedDirs)
-
-				folderAfter.Write(checksumFile)
-			}
+		fmt.Print("\nUpdate? ")
+		b := make([]byte, 1)
+		if _, err := os.Stdin.Read(b); err != nil {
+			return err
+		}
+		if strings.ToUpper(string(b[0])) == "Y" {
+			folderAfter.Write(checksumFile)
 		}
 	}
 	return nil
@@ -180,49 +170,6 @@ func appendSlash(folder string) string {
 		return folder + "/"
 	}
 	return folder
-}
-
-func applyChanged(root, remoteRoot string, changedFiles []util.File) {
-	if len(changedFiles) > 0 {
-		fmt.Println("\nChanged")
-
-		for _, file := range changedFiles {
-			fmt.Println(file.Name)
-			util.CopyRemoteFile(root+file.Name, remoteRoot+file.Name)
-		}
-	}
-}
-
-func applyCreated(root, remoteRoot string, createdFiles, createdDirs []util.File) {
-	if len(createdFiles) > 0 {
-		fmt.Println("\nCreated")
-
-		for _, file := range createdDirs {
-			fmt.Println(file.Name)
-			util.MakeRemoteDir(remoteRoot + file.Name)
-		}
-
-		for _, file := range createdFiles {
-			fmt.Println(file.Name)
-			util.CopyRemoteFile(root+file.Name, remoteRoot+file.Name)
-		}
-	}
-}
-
-func applyRemoved(root, remoteRoot string, removedFiles, removedDirs []util.File) {
-	if len(removedFiles) > 0 {
-		fmt.Println("\nRemoved")
-
-		for _, file := range removedFiles {
-			fmt.Println(file.Name)
-			util.DeleteRemoteFile(remoteRoot + file.Name)
-		}
-
-		for _, file := range removedDirs {
-			fmt.Println(file.Name)
-			util.DeleteRemoteFile(remoteRoot + file.Name)
-		}
-	}
 }
 
 func print(title string, files, dirs []util.File) {
