@@ -132,24 +132,24 @@ func worker(prefix int, tasks <-chan string, results chan<- util.File) {
 }
 
 func checkChecksumFile(root, checksumFile string) error {
-	folderBefore, err := util.Read(checksumFile)
+	prev, err := util.Read(checksumFile)
 	if err != nil {
 		return err
 	}
 
 	root = appendSlash(root)
-	folderAfter, err := getChecksum(root)
+	curr, err := getChecksum(root)
 	if err != nil {
 		return err
 	}
 
-	changedFiles := util.ChangedFiles(folderBefore.Files, folderAfter.Files)
+	changedFiles := util.ChangedFiles(prev.Files, curr.Files)
 	print("\nChanged", changedFiles, nil)
 
-	createdFiles, createdDirs := util.CreatedFiles(folderBefore.Files, folderAfter.Files)
+	createdFiles, createdDirs := util.CreatedFiles(prev.Files, curr.Files)
 	print("\nCreated", createdFiles, createdDirs)
 
-	removedFiles, removedDirs := util.RemovedFiles(folderBefore.Files, folderAfter.Files)
+	removedFiles, removedDirs := util.RemovedFiles(prev.Files, curr.Files)
 	print("\nRemoved", removedFiles, removedDirs)
 
 	if len(changedFiles) > 0 || len(createdFiles) > 0 || len(createdDirs) > 0 || len(removedFiles) > 0 || len(removedDirs) > 0 {
@@ -159,7 +159,7 @@ func checkChecksumFile(root, checksumFile string) error {
 			return err
 		}
 		if strings.ToUpper(string(b[0])) == "Y" {
-			folderAfter.Write(checksumFile)
+			curr.Write(checksumFile)
 		}
 	}
 	return nil

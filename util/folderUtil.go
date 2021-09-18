@@ -36,7 +36,6 @@ func (jsonBytes ChecksumBytes) decode() (Folder, error) {
 	if err := json.Unmarshal(jsonBytes, &folder); err != nil {
 		return Folder{}, err
 	}
-
 	return folder, nil
 }
 
@@ -58,7 +57,6 @@ func Read(filepath string) (Folder, error) {
 	if err != nil {
 		return Folder{}, err
 	}
-
 	return folder, nil
 }
 
@@ -74,30 +72,18 @@ func ChangedFiles(beforeFiles, afterFiles []File) (changed []File) {
 	return
 }
 
-func CreatedFiles(beforeFiles, afterFiles []File) (createdFiles, createdDirs []File) {
-	for _, f1 := range afterFiles {
-		found := false
-		for _, f2 := range beforeFiles {
-			if f1.Name == f2.Name {
-				found = true
-				break
-			}
-		}
-		if !found {
-			if f1.IsFolder() {
-				createdDirs = append(createdDirs, f1)
-			} else {
-				createdFiles = append(createdFiles, f1)
-			}
-		}
-	}
-	return
+func CreatedFiles(prev, curr []File) (diffFiles, diffDirs []File) {
+	return findDiff(curr, prev)
 }
 
-func RemovedFiles(beforeFiles, afterFiles []File) (removedFiles, removedDirs []File) {
-	for _, f1 := range beforeFiles {
+func RemovedFiles(prev, curr []File) (diffFiles, diffDirs []File) {
+	return findDiff(prev, curr)
+}
+
+func findDiff(files1, files2 []File) (diffFiles, diffDirs []File) {
+	for _, f1 := range files1 {
 		found := false
-		for _, f2 := range afterFiles {
+		for _, f2 := range files2 {
 			if f1.Name == f2.Name {
 				found = true
 				break
@@ -105,9 +91,9 @@ func RemovedFiles(beforeFiles, afterFiles []File) (removedFiles, removedDirs []F
 		}
 		if !found {
 			if f1.IsFolder() {
-				removedDirs = append(removedDirs, f1)
+				diffDirs = append(diffDirs, f1)
 			} else {
-				removedFiles = append(removedFiles, f1)
+				diffFiles = append(diffFiles, f1)
 			}
 		}
 	}

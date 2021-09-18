@@ -6,15 +6,15 @@ A backup utility that checks checksum to prevent bitrot.
 
 Generate checksum file
 --
-`bitrot_killer --create /home/jerry/shared /home/jerry/shared.json`
+`$ bitrot_killer --create /home/jerry/shared /home/jerry/shared.json`
 
-Check update
+Check & update checksum file
 --
-`bitrot_killer --check /home/jerry/shared /home/jerry/shared.json [smb://192.168.8.140/public/sda1/Jerry/shared]`
+`$ bitrot_killer --check /home/jerry/shared /home/jerry/shared.json`
 
-Check duplicated files and empty folder
+Find duplicated files and empty folder
 --
-`bitrot_killer --dedup /home/jerry/shared.json`
+`$ bitrot_killer --dedup /home/jerry/shared.json`
 
 License
 ==
