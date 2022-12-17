@@ -1,4 +1,7 @@
-github.com/codingsince1985/checksum v1.2.0 h1:eHrYWk1Cg8u7NoG2J6atmlSg260PiCnluRXP5Whxvho=
-github.com/codingsince1985/checksum v1.2.0/go.mod h1:Ccc9I17XmnLE8EL0rU22ZYHRpD2SGcGM15Xe3vxKStQ=
+github.com/codingsince1985/checksum v1.2.6 h1:UjCDls6oaRQeLPG14TvjLvOos2XL1qHdMl8uGMkzpi8=
+github.com/codingsince1985/checksum v1.2.6/go.mod h1:Pe5wfeiqzQC1qEXLWEFmxQ3W/OklJEJGiJO62graCJU=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
-github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
+golang.org/x/crypto v0.4.0 h1:UVQgzMY87xqpKNgb+kDsll2Igd33HszWHFLmpaRMq/8=
+golang.org/x/crypto v0.4.0/go.mod h1:3quD/ATkf6oY+rnes5c3ExXTbLc8mueNue5/DoinL80=
+golang.org/x/sys v0.3.0 h1:w8ZOecv6NaNa/zC8944JTU3vz4u6Lagfk4RPQxv92NQ=
+golang.org/x/sys v0.3.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
